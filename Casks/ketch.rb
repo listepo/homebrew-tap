@@ -1,9 +1,9 @@
 cask "ketch" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "0.1.0"
-  sha256 arm:   "7c1d078baa0dd24ff8d8917bdafec3720ae865dec315cc361f2360914473e0d0",
-         intel: "b35777d9b82cd0a6b24503b7655df985e0c5d7b2b627b9a1acbe7b1fea826cfa"
+  version "0.2.1"
+  sha256 arm:   "debdf7e54945bb5b8913e4fc904f888fdfb0d4b4e92ffc55c955ebca69239672",
+         intel: "af258c58e00be27245ea10e6e8626ff32725064aa10828b1f9cb94c82fcc3cd5"
 
   url "https://github.com/listepo/ketch/releases/download/v#{version}/ketch-#{arch}-apple-darwin.tar.gz"
   name "ketch"
@@ -46,10 +46,13 @@ cask "ketch" do
   end
 
   uninstall_postflight_steps do
-    # Removes the ketch package and nothing else; what ketch installed stays
-    # until `zap`.
+    # Two flags, both because of where this runs. `--keep-packages` removes the
+    # ketch package and nothing else: what ketch installed is not Homebrew's to
+    # take, and stays until `zap`. `--no-brew` stops ketch calling
+    # `brew uninstall --cask ketch` from inside that very command.
     run "/bin/sh", args:           ["-c",
-                                    'eval "r=~$1/.ketch" && KETCH_ROOT="$r" exec "$r/bin/ketch" self uninstall -y',
+                                    'eval "r=~$1/.ketch" && KETCH_ROOT="$r" ' \
+                                    'exec "$r/bin/ketch" self uninstall -y --keep-packages --no-brew',
                                     "ketch", "{{user}}"],
                    must_succeed:   false,
                    writable_paths: [".ketch"],
