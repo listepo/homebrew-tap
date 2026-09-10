@@ -1,0 +1,85 @@
+# Pull the Homebrew formula cargo-dist attaches to listepo/rtok releases and open
+# a PR here. Runs in this repository so GITHUB_TOKEN is enough — no
+# HOMEBREW_TAP_TOKEN and no push from the rtok release workflow.
+name: sync-rtok
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Catch new rtok releases without a cross-repo token.
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-rtok
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest rtok formula from GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p Formula
+          tag="$(gh release view --repo listepo/rtok --json tagName -q .tagName)"
+          echo "Latest listepo/rtok release: $tag"
+
+          # cargo-dist names the formula artifact after the package (rtok.rb).
+          # Fall back to any *.rb on the release if the name ever changes.
+          if ! gh release download "$tag" --repo listepo/rtok --pattern 'rtok.rb' --clobber -D /tmp/rtok-formula 2>/dev/null; then
+            gh release download "$tag" --repo listepo/rtok --pattern '*.rb' --clobber -D /tmp/rtok-formula
+          fi
+          formula="$(find /tmp/rtok-formula -name '*.rb' -type f | head -1)"
+          if [ -z "$formula" ]; then
+            echo "No .rb formula on $tag — enable the homebrew installer in rtok's dist-workspace.toml (without publish-jobs)." >&2
+            exit 1
+          fi
+          cp "$formula" Formula/rtok.rb
+          echo "Installed $(basename "$formula") as Formula/rtok.rb for $tag"
+
+      - name: Open a PR when Formula/rtok.rb changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- Formula/rtok.rb && [ -f Formula/rtok.rb ]; then
+            # Also quiet when the file is new-but-identical after first add tracked
+            if git ls-files --error-unmatch Formula/rtok.rb >/dev/null 2>&1; then
+              echo "Formula/rtok.rb already up to date"
+              exit 0
+            fi
+          fi
+          if git diff --quiet -- Formula/rtok.rb && git ls-files --error-unmatch Formula/rtok.rb >/dev/null 2>&1; then
+            echo "Formula/rtok.rb already up to date"
+            exit 0
+          fi
+
+          version="$(sed -nE 's/^[[:space:]]*version[[:space:]]+"([^"]+)".*/\1/p' Formula/rtok.rb | head -1)"
+          branch="sync/rtok-${version:-update}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add Formula/rtok.rb
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "Formula/rtok: ${version:-sync from listepo/rtok}"
+          git push -u origin "$branch" --force
+          if gh pr list --head "$branch" --json number -q 'length' | grep -qx 0; then
+            gh pr create \
+              --title "Formula/rtok: ${version:-update}" \
+              --body "Auto-synced from [listepo/rtok](https://github.com/listepo/rtok) release assets (\`rtok.rb\` produced by cargo-dist). Merge to publish \`brew install listepo/tap/rtok\`."
+          else
+            echo "PR for $branch already open"
+          fi
