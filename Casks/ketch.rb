@@ -3,9 +3,9 @@
 cask "ketch" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "0.4.1"
-  sha256 arm:   "ee95cb1ef169001735386f168e321d97034bee44efa2364de5bf426187b62555",
-         intel: "4372cc363e5ba1d20838b120227720aaf4a99b1674d1ab2f8388f9ce6668cc0b"
+  version "0.4.2"
+  sha256 arm:   "07f8ed9bdbbabb4f2c703c882489b258e965a2c53b1d9b068fb35f714d738cf8",
+         intel: "450ea585d04dfe02bbd7e8abae96ca2833bb445b9e38ff731c5b9c05666ad182"
 
   url "https://github.com/listepo/ketch/releases/download/v#{version}/ketch-#{arch}-apple-darwin.tar.gz"
   name "ketch"
