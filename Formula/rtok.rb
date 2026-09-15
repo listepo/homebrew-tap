@@ -1,21 +1,21 @@
 class Rtok < Formula
   desc "Token-reduction CLI for AI coding agents: hooks, MCP server and API proxy with pluggable methods"
   homepage "https://listepo.github.io/rtok/"
-  version "0.1.0"
+  version "0.1.1"
   if OS.mac?
     if Hardware::CPU.arm?
-      url "https://github.com/listepo/rtok/releases/download/v0.1.0/rtok-aarch64-apple-darwin.tar.xz"
-      sha256 "9c2a95774a3ed0f6a013a104b9b4c338bac52a29b0a32b2c5c89c38d6329d099"
+      url "https://github.com/listepo/rtok/releases/download/v0.1.1/rtok-aarch64-apple-darwin.tar.xz"
+      sha256 "2b23ce59c98c2fb3745d97045ca55e04e33b4f02e911d090fd9b11ace1005490"
     end
     if Hardware::CPU.intel?
-      url "https://github.com/listepo/rtok/releases/download/v0.1.0/rtok-x86_64-apple-darwin.tar.xz"
-      sha256 "8cadc2ee899ccd605b8152010a5dd3ae5375c07ec1d603cbe2550760b5c44010"
+      url "https://github.com/listepo/rtok/releases/download/v0.1.1/rtok-x86_64-apple-darwin.tar.xz"
+      sha256 "9fa9333a12cb4847f977c81c2c51728b627cfc733078c7f4341f867a3e5c2bd2"
     end
   end
   if OS.linux?
     if Hardware::CPU.intel?
-      url "https://github.com/listepo/rtok/releases/download/v0.1.0/rtok-x86_64-unknown-linux-gnu.tar.xz"
-      sha256 "5457e0f304bb1047a523d0cd80b702332a1fdf6d5f796b38618c9c8f1077e606"
+      url "https://github.com/listepo/rtok/releases/download/v0.1.1/rtok-x86_64-unknown-linux-gnu.tar.xz"
+      sha256 "646ce3bd8502101b8c3373895f14df8ce870e9bcf7970850cfeb4279bbaebdc1"
     end
   end
 
